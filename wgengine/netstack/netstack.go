@@ -1055,7 +1055,10 @@ func (ns *Impl) injectToWireGuard() {
 		}
 		if err := ns.tundev.InjectOutboundPacketBuffer(pkt); err != nil {
 			ns.logf("netstack injectToWireGuard err: %v", err)
-			return
+			// When failing to write to the tundev, log the error, but continue serving
+			// the ReadContext for sending traffic as nothing manages a failed
+			// injectToWireGuard.
+			continue
 		}
 	}
 }
@@ -1097,7 +1100,9 @@ func (ns *Impl) injectToHost() {
 		}
 		if err := ns.tundev.InjectInboundPacketBuffer(pkt, inboundSlab, packets, writeBufs); err != nil {
 			ns.logf("netstack injectToHost err: %v", err)
-			return
+			// When failing to write to the tundev, log the error, but continue serving
+			// the ReadContext for sending traffic as nothing manages a failed injectToHost.
+			continue
 		}
 	}
 }
